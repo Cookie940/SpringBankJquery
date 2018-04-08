@@ -1,0 +1,253 @@
+<dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>3.9</version>
+        </dependency>
+
+
+        最近需要在java中调用读写excel文件，完成工作之后觉得这一块东西需要记录一下，需要用到开源项目apche中的poi包。特此进行总结。
+
+        一、maven项目中引用相关的依赖
+
+        需要在pom.xml文件中引入以下依赖才能正常调用poi jar包处理excel：
+
+           //poi jar包
+
+            <dependency>
+           <groupId>org.apache.poi</groupId>
+              <artifactId>poi</artifactId>
+              <version>3.8</version>
+          </dependency>
+            <dependency>
+           <groupId>org.apache.poi</groupId>
+              <artifactId>poi-ooxml</artifactId>
+              <version>3.8</version>
+          </dependency>
+
+        //操作Mysql用到的jar包
+        <dependency>
+         <groupId>mysql</groupId>
+         <artifactId>mysql-connector-java</artifactId>
+         <version>5.1.18</version>
+        </dependency>
+
+        这里需要说以下利用maven管理java项目的好处，就是只需要在pom.xml文件中添加合适的dependency，maven就会自动的帮你下载jar包及其相关依赖的jar包；
+
+        如果不用maven，可想而知，你需要自己去下载管理jar包及其相关依赖的jar包，十分的繁琐和痛苦！！所以建议使用maven管理java项目！！
+
+
+
+        二、利用poi包操作excel
+
+        1)读取excel文件内容到Workbook 对象
+
+        File file = new File("test.xlsx");
+        Workbook wb = new XSSFWorkbook(new FileInputStream(file));
+
+        这两行即可完成将源excel文件读取到名为wb的Workbook对象中；
+
+        需要说明下XSSFWorkbook和HSSFWorkbook的区别，即：
+
+        HSSFWorkbook:是操作Excel2003以前（包括2003）的版本，扩展名是.xls
+
+        XSSFWorkbook:是操作Excel2007的版本，扩展名是.xlsx
+
+
+        2）将Workbook对象写入excel文件
+
+        wb.write(new FileOutputStream(new File(“output.xlsx”)));
+
+
+
+        3)相关api
+
+        //获取工作表的数量
+
+        int sheetNumber = wb.getNumberOfSheets();
+
+         //获取某一张工作表的内容
+
+        Sheet sheet = wb.getSheetAt(sheetIndex);
+
+        //获取工作表的行数
+
+        int rowNum = sheet.getLastRowNum();
+
+        //获取工作表某一行
+
+        Row row = sheet.getRow(rowIndex);
+
+        //在工作表创建一行
+
+        Row nrow = sheet.createRow(rowIndex);
+
+        //移除某一行
+
+        sheet.removeRow(row);
+
+        //获取工作表某一行第一个单元格 和最后一个单元格
+
+        Cell dateCell = sheet.getRow(rowIndex).getCell(sheet.getRow(rowIndex).getFirstCellNum());
+
+        Cell dateCell = sheet.getRow(rowIndex).getCell(sheet.getRow(rowIndex).getLastCellNum());
+
+        //在工作表某一行创建单元格
+
+        Cell cell = row.createCell(cellNum);
+
+        //获取单元格格式
+
+        dateCell.getCellType()  [Cell.CELL_TYPE_NUMERIC、Cell.CELL_TYPE_FORMULA、Cell.CELL_TYPE_STRING、...... ]
+
+        //获取单元格内容
+
+        dateCell.getStringCellValue()/dateCell.getDateCellValue()/......
+
+        //设置单元格样式和内容
+
+        CellStyle cellStyle = sheet.getWorkbook().createCellStyle();
+        DataFormat format = sheet.getWorkbook().createDataFormat();
+        cellStyle.setDataFormat(format.getFormat("yyyy/m/d"));
+
+        cellStyle.setAlignment(CellStyle.ALIGN_CENTER);
+        cellStyle.setBorderBottom(CellStyle.BORDER_THIN);
+
+        cellStyle.setBorderLeft(CellStyle.BORDER_THIN);
+        cellStyle.setBorderRight(CellStyle.BORDER_THIN);
+
+        cellStyle.setBorderTop(CellStyle.BORDER_THIN);
+        cell.setCellStyle(cellStyle);
+
+        cell.setCellValue(yyyyMMdd.parse(date));
+
+        //设置单元格格式和内容
+
+        cell.setCellType(Cell.CELL_TYPE_NUMERIC);
+         cell.setCellValue(intVal);
+
+        //当单元格内容为公式计算得出时：
+
+        FormulaEvaluator evaluator = wb.getCreationHelper().createFormulaEvaluator(); //如果要用到，在创建wb对象后立即创建即可在后文任何地方使用
+
+        cellStyle = sheet.getWorkbook().createCellStyle();
+        format = sheet.getWorkbook().createDataFormat();
+        cellStyle.setDataFormat(format.getFormat("0.00%"));
+        cell.setCellStyle(cellStyle);
+        cell.setCellType(Cell.CELL_TYPE_FORMULA);
+        cell.setCellFormula(String.format("F%s/E%s", nrow.getRowNum() + 1, nrow.getRowNum() + 1));
+        evaluator.evaluateFormulaCell(cell);
+
+
+
+        以下内容转自：http://javacrazyer.iteye.com/blog/894850
+
+
+        以下将要介绍的每一种都会用到这三行中的变量
+
+
+
+                    HSSFWorkbook demoWorkBook = new HSSFWorkbook();
+
+                    HSSFSheet demoSheet = demoWorkBook.createSheet("The World's 500 Enterprises");
+
+                    HSSFCell cell = demoSheet.createRow(0).createCell(0);
+
+
+
+        第一种：日期格式
+
+
+
+                    cell.setCellValue(new Date(2008,5,5));
+
+                    //set date format
+
+                    HSSFCellStyle cellStyle = demoWorkBook.createCellStyle();
+
+                    HSSFDataFormat format= demoWorkBook.createDataFormat();
+
+                    cellStyle.setDataFormat(format.getFormat("yyyy年m月d日"));
+
+                    cell.setCellStyle(cellStyle);
+
+
+
+        第二种：保留两位小数格式
+
+                    cell.setCellValue(1.2);
+
+                    HSSFCellStyle cellStyle = demoWorkBook.createCellStyle();
+
+                    cellStyle.setDataFormat(HSSFDataFormat.getBuiltinFormat("0.00"));
+
+                    cell.setCellStyle(cellStyle);
+
+
+
+        这里与上面有所不同，用的是HSSFDataFormat.getBuiltinFormat()方法，之所以用这个，是因为0.00是Excel内嵌的格式，完整的Excel内嵌格式列表大家可以看这个窗口中的自定义列表：
+
+
+
+         这里就不一一列出了
+
+
+
+        第三种：货币格式
+
+
+
+                    cell.setCellValue(20000);
+
+                    HSSFCellStyle cellStyle = demoWorkBook.createCellStyle();
+
+                    HSSFDataFormat format= demoWorkBook.createDataFormat();
+
+                    cellStyle.setDataFormat(format.getFormat("¥#,##0"));
+
+                    cell.setCellStyle(cellStyle);
+
+
+
+        第四种：百分比格式
+
+
+
+                    cell.setCellValue(20);
+
+                    HSSFCellStyle cellStyle = demoWorkBook.createCellStyle();
+
+                    cellStyle.setDataFormat(HSSFDataFormat.getBuiltinFormat("0.00%"));
+
+                    cell.setCellStyle(cellStyle);
+
+          此种情况跟第二种一样
+
+
+
+        第五种：中文大写格式
+
+
+
+                    cell.setCellValue(20000);
+
+                    HSSFCellStyle cellStyle = demoWorkBook.createCellStyle();
+
+                    HSSFDataFormat format= demoWorkBook.createDataFormat();
+
+                    cellStyle.setDataFormat(format.getFormat("[DbNum2][$-804]0"));
+
+                    cell.setCellStyle(cellStyle);
+
+
+
+        第六种：科学计数法格式
+
+
+
+                    cell.setCellValue(20000);
+
+                    HSSFCellStyle cellStyle = demoWorkBook.createCellStyle();
+
+                    cellStyle.setDataFormat( HSSFDataFormat.getBuiltinFormat("0.00E+00"));
+
+                    cell.setCellStyle(cellStyle);
